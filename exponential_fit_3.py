@@ -2,18 +2,21 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 
-# Apply a professional built-in formatting style to make it look better automatically
+
 plt.style.use('ggplot')
 
 HOURS_PER_YEAR = 8760
 
+
+# exp function since we start from 2021
 def mw_exp_func(x, a, b):
     return a * np.exp(b * (x - 2021))
 
+# exp functino since we start from 2018
 def emission_exp_func(x, a, b):
     return a * np.exp(b * (x - 2018))
 
-# Data set 1: MW Capacity (2021, 2022, 2023, 2024, 2030)
+# data set 1 in MW capacity
 mw_years = np.array([2021, 2022, 2023, 2024, 2030])
 mw_data = {
     'Hawaii': [1, 1, 1, 44, 45],
@@ -23,7 +26,7 @@ mw_data = {
     'Virginia': [2701, 3194, 4694, 6367, 22323]
 }
 
-# Data set 2: Emissions per MWh (2018, 2019, 2020, 2021, 2022, 2023)
+# data set 2 for emissions
 em_years = np.array([2018, 2019, 2020, 2021, 2022, 2023])
 em_data = {
     'Minnesota': [995.409, 874.768, 765.049, 825.973, 768.241, 747.545],
@@ -33,49 +36,51 @@ em_data = {
     'Illinois':  [812.873, 720.994, 553.201, 653.049, 588.411, 471.705]
 }
 
+# create the linspace for our plot so we can actually graph
 proj_years = np.linspace(2021, 2030, 200)
 
-# The overlapping years where we actually have dual historical data
+# the overlapping years where we actually have data for both sets
 overlap_years = np.array([2021, 2022, 2023])
 
+#create the figure size
 plt.figure(figsize=(12, 7))
 
 for state in mw_data.keys():
     y_mw = np.array(mw_data[state])
-    popt_mw, _ = curve_fit(mw_exp_func, mw_years, y_mw, p0=(y_mw[0]+1, 0.2))
+    parameters_mw, _ = curve_fit(mw_exp_func, mw_years, y_mw)
     
     y_em = np.array(em_data[state])
-    popt_em, _ = curve_fit(emission_exp_func, em_years, y_em, p0=(y_em[0], -0.1))
+    parameters_em, _ = curve_fit(emission_exp_func, em_years, y_em)
     
-    # 1. Project the Math
-    mwh_proj = mw_exp_func(proj_years, *popt_mw) * HOURS_PER_YEAR
-    em_proj = emission_exp_func(proj_years, *popt_em)
+    # project the math onto each individual line, and then multiply them together to get a total emissions line
+    mwh_proj = mw_exp_func(proj_years, *parameters_mw) * HOURS_PER_YEAR
+    em_proj = emission_exp_func(proj_years, *parameters_em)
     total_emissions = mwh_proj * em_proj
     
-    # Plot mathematical line thicker and dashed
+    # plot our total emissions line thicker and dashed
     line = plt.plot(proj_years, total_emissions, linestyle='--', linewidth=2.5, alpha=0.7, label=f'{state} (Model)')[0]
     
-    # 2. Calculate the multiplied data points for all 5 MW years (2021, 2022, 2023, 2024, 2030)
-    # Use real emission data for 2021-2023, and modeled emission data for 2024, 2030
+    # calculate the multiplied data points for all 5 MW years (2021, 2022, 2023, 2024, 2030)
+    # use real emission data for 2021-2023, and modeled emission data for 2024, 2030
     real_mwh = np.array(mw_data[state]) * HOURS_PER_YEAR
     
-    # Actual em data for 2021, 2022, 2023
+    # actual em data for 2021, 2022, 2023
     hybrid_em = np.zeros(5)
     hybrid_em[0:3] = em_data[state][3:6] 
-    hybrid_em[3:5] = emission_exp_func(np.array([2024, 2030]), *popt_em)
+    hybrid_em[3:5] = emission_exp_func(np.array([2024, 2030]), *parameters_em)
     
     multiplied_emissions = real_mwh * hybrid_em
     
-    # Plot multiplied points dynamically
+    # plot multiplied points 
     plt.scatter(mw_years, multiplied_emissions, color=line.get_color(), s=90, zorder=5, label=f'{state} (Combined Data)')
 
-# Formatting Magic
-plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+# add the legend to the upper left
+plt.legend(loc='upper right')
 
-# Using LaTeX style bolding to make titles pop
-plt.title(r'Data Center $\mathbf{CO_2}$ Emissions Projections (2021 - 2030)', fontsize=16, pad=15)
+# fix plot titles and labels
+plt.title(r'Data Center CO_2 Emissions Projections (2021 - 2030)', fontsize=16, pad=15)
 plt.xlabel('Year', fontsize=12, fontweight='bold')
-plt.ylabel(r'Total Emissions (lbs of $\mathbf{CO_2}$)', fontsize=12, fontweight='bold')
+plt.ylabel(r'Total Emissions (lbs of CO_2)', fontsize=12, fontweight='bold')
 
 plt.yscale('log')
 plt.tight_layout()
