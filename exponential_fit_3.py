@@ -64,7 +64,7 @@ for state in mw_data.keys():
     # use real emission data for 2021-2023, and modeled emission data for 2024, 2030
     real_mwh = np.array(mw_data[state]) * HOURS_PER_YEAR
     
-    # actual em data for 2021, 2022, 2023
+    # actual emissions data for 2021, 2022, 2023
     hybrid_em = np.zeros(5)
     hybrid_em[0:3] = em_data[state][3:6] 
     hybrid_em[3:5] = emission_exp_func(np.array([2024, 2030]), *parameters_em)
@@ -78,9 +78,9 @@ for state in mw_data.keys():
 plt.legend(loc='upper right')
 
 # fix plot titles and labels
-plt.title(r'Data Center CO_2 Emissions Projections (2021 - 2030)', fontsize=16, pad=15)
+plt.title('Data Center CO_2 Emissions Projections (2021 - 2030)', fontsize=16, pad=15)
 plt.xlabel('Year', fontsize=12, fontweight='bold')
-plt.ylabel(r'Total Emissions (lbs of CO_2)', fontsize=12, fontweight='bold')
+plt.ylabel('Total Emissions (lbs of CO_2)', fontsize=12, fontweight='bold')
 
 plt.yscale('log')
 plt.tight_layout()
