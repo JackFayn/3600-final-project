@@ -96,6 +96,9 @@ function populateStates() {
     opt.textContent = s;
     select.appendChild(opt);
   }
+  // Default to Virginia so the interactive projection shows its headline
+  // number on first load, not an empty-state hint.
+  if (DATA.states['Virginia']) select.value = 'Virginia';
 }
 
 function statesToRender(selected) {

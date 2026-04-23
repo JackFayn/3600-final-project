@@ -93,6 +93,7 @@ function populateStates() {
     opt.textContent = s;
     select.appendChild(opt);
   }
+  if (DATA.states['Virginia']) select.value = 'Virginia';
 }
 
 function statesToRender(selected) {

@@ -103,12 +103,12 @@ body > * { position: relative; z-index: 1; }
 .masthead h1 {
   font-family: var(--serif-display);
   font-weight: 400;
-  font-size: clamp(42px, 6.8vw, 76px);
-  line-height: 0.98;
+  font-size: clamp(42px, 6.6vw, 72px);
+  line-height: 1.02;
   letter-spacing: -0.022em;
   color: var(--ink);
   margin: 0 0 28px;
-  max-width: 16ch;
+  max-width: 22ch;
   font-variation-settings: "opsz" 144, "SOFT" 30;
 }
 .masthead h1 em {
