@@ -14,8 +14,8 @@ def emission_exp_func(x, a, b):
 # data set 1 in MW capacity
 mw_years = np.array([2021, 2022, 2023, 2024, 2030])
 mw_data = {
-    'Hawaii': [1, 1, 1, 44, 45],
-    'Illinois': [15, 17, 17, 89, 554],
+    'Hawaii': [1, 1, 1, 8, 9],
+    'Illinois': [793, 985, 1069, 1602, 3327],
     'Maine': [0, 3, 3, 3, 9], 
     'Minnesota': [59, 59, 69, 106, 600],
     'Virginia': [2701, 3194, 4694, 6367, 22323]

@@ -22,10 +22,10 @@ for state, y_data in states_data.items():
     
     # Notice we removed the +1 on y[0], since these numbers are all > 0 
     # Also we use -0.1 as the guess for b since many decrease
-    popt, _ = curve_fit(exp_func, years, y, p0=(y[0], -0.1))
+    parameters, _ = curve_fit(exp_func, years, y)
     
     line = plt.plot(years, y, 'o', label=state)[0]
-    plt.plot(years_smooth, exp_func(years_smooth, *popt), '--', color=line.get_color())
+    plt.plot(years_smooth, exp_func(years_smooth, *parameters), '--', color=line.get_color())
 
 plt.legend()
 plt.title('Exponential Fits (2018 - 2023)')
