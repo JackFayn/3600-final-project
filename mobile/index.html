@@ -3,33 +3,37 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<meta name="theme-color" content="#003057" />
-<title>Data-center CO₂ projections · mobile</title>
+<meta name="theme-color" content="#F5EFDF" />
+<title>Data-center CO₂ projections · ECE 3600</title>
 <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
 
-  <div class="gold-bar"></div>
   <header>
-    <div class="wordmark">
-      <span class="gt">GT</span>
-      <span class="course">ECE 3600 &middot; Spring 2026</span>
-    </div>
-    <h1>Data-center CO<sub>2</sub> projections</h1>
-    <p class="lede">
-      Exponential fits of state-level MW capacity times grid emission
-      intensity. Five states, six years of EPA eGRID data.
+    <p class="dateline">
+      <span class="gold-mark"></span>
+      <span>Georgia Tech</span>
+      <span class="sep"></span>
+      <span>ECE 3600</span>
+      <span class="sep"></span>
+      <span>Spring 2026</span>
     </p>
+    <h1>Data-center <em>CO<sub>2</sub></em> projections</h1>
+    <p class="lede">
+      Exponential fits of state-level MW capacity times grid emission intensity.
+      <em>Five states, six years of EPA eGRID data.</em>
+    </p>
+    <div class="byline">A final-presentation report</div>
   </header>
 
   <main>
 
-    <section class="panel">
-      <h2>Project a year</h2>
+    <article class="article">
+      <div class="section-kicker">Projection</div>
+      <h2>Evaluate at a year</h2>
       <form id="project-form">
         <label>State
           <select name="state" id="state">
@@ -41,27 +45,30 @@
         </label>
       </form>
       <div id="result" class="result"></div>
-    </section>
+    </article>
 
-    <section class="panel">
+    <article class="article">
+      <div class="section-kicker">Figure 01</div>
       <h2>Total emissions</h2>
       <p class="panel-sub">Log scale. Dashed lines are fits; markers are observed.</p>
       <div id="total-chart" class="chart"></div>
-    </section>
+      <p class="fig-caption">Annual CO<sub>2</sub> from data-center load, five states, 2021&ndash;2030.</p>
+    </article>
 
-    <section class="panel">
-      <h2>MW capacity</h2>
+    <article class="article">
+      <div class="fig-label"><span class="n">Fig. 02</span><span>MW capacity</span></div>
       <div id="mw-chart" class="chart"></div>
-    </section>
+    </article>
 
-    <section class="panel">
-      <h2>Emission intensity</h2>
+    <article class="article">
+      <div class="fig-label"><span class="n">Fig. 03</span><span>Emission intensity</span></div>
       <p class="panel-sub">lb CO<sub>2</sub> per MWh.</p>
       <div id="em-chart" class="chart"></div>
-    </section>
+    </article>
 
-    <section class="panel methodology">
-      <h2>Methodology</h2>
+    <article class="article methodology">
+      <div class="section-kicker">Methodology</div>
+      <h2>How the projection is built</h2>
       <p>
         We fit MW capacity and grid emission intensity each to an exponential,
         then multiply them. SciPy's <code>curve_fit</code> handles the nonlinear
@@ -103,16 +110,14 @@
         <li>Only five years of MW data and six years of emission data per state, so the fitted growth rate has a wide margin of error.</li>
         <li>The 2030 MW value comes from an industry forecast, not a measurement, and it has an outsized effect on the projection.</li>
       </ul>
-    </section>
+    </article>
 
   </main>
 
   <footer>
-    <div class="footer-inner">
-      <span>ECE 3600 &middot; Georgia Tech &middot; Spring 2026</span>
-      <span>Data: EPA eGRID 2018&ndash;2023</span>
-      <a href="../index.html">View desktop version &rsaquo;</a>
-    </div>
+    <span>ECE&nbsp;3600 &middot; Georgia&nbsp;Tech &middot; Spring&nbsp;2026</span>
+    <span>Data: EPA&nbsp;eGRID 2018&ndash;2023</span>
+    <a href="../index.html">Desktop version &rsaquo;</a>
   </footer>
 
   <script src="app.js"></script>

@@ -1,24 +1,57 @@
-const GT_NAVY = '#003057';
+const GT_NAVY = '#153759';
 const STATE_COLORS = {
-  Hawaii:    '#003057',
-  Illinois:  '#B3A369',
-  Maine:     '#54585A',
-  Minnesota: '#857437',
-  Virginia:  '#9E2A2B',
+  Hawaii:    '#153759',
+  Illinois:  '#A08540',
+  Maine:     '#4A463D',
+  Minnesota: '#6E5A27',
+  Virginia:  '#8C2527',
 };
 
+const SERIF_BODY = '"Source Serif 4", "Source Serif Pro", Georgia, serif';
+const SERIF_DISPLAY = '"Fraunces", "Didot", Georgia, serif';
+
 const PLOTLY_LAYOUT = {
-  paper_bgcolor: '#FFFFFF',
-  plot_bgcolor: '#FAF7EF',
-  font: { color: '#1A1A1A', family: '"Source Serif 4", Georgia, serif', size: 11 },
-  margin: { t: 8, r: 12, b: 70, l: 54 },
-  legend: { orientation: 'h', y: -0.3, x: 0, font: { family: 'Oswald, sans-serif', size: 10 } },
-  xaxis: { gridcolor: '#E5DFC9', zerolinecolor: '#D9D1B7', linecolor: '#D9D1B7', tickfont: { family: 'Oswald, sans-serif', size: 10 }, fixedrange: true },
-  yaxis: { gridcolor: '#E5DFC9', zerolinecolor: '#D9D1B7', linecolor: '#D9D1B7', tickfont: { family: 'Oswald, sans-serif', size: 10 }, fixedrange: true },
+  paper_bgcolor: 'rgba(0,0,0,0)',
+  plot_bgcolor: 'rgba(0,0,0,0)',
+  font: { color: '#14120B', family: SERIF_BODY, size: 11 },
+  margin: { t: 8, r: 14, b: 62, l: 56 },
+  legend: {
+    orientation: 'h',
+    y: -0.28,
+    x: 0,
+    font: { family: SERIF_DISPLAY, size: 10, color: '#3A352A' },
+    bgcolor: 'rgba(0,0,0,0)',
+    itemsizing: 'constant',
+  },
+  xaxis: {
+    gridcolor: '#E2D9BA',
+    gridwidth: 0.6,
+    zeroline: false,
+    linecolor: '#14120B',
+    linewidth: 1,
+    tickcolor: '#14120B',
+    ticklen: 5,
+    tickfont: { family: SERIF_BODY, size: 10, color: '#3A352A' },
+    fixedrange: true,
+    automargin: true,
+  },
+  yaxis: {
+    gridcolor: '#E2D9BA',
+    gridwidth: 0.6,
+    zeroline: false,
+    linecolor: '#14120B',
+    linewidth: 1,
+    tickcolor: '#14120B',
+    ticklen: 5,
+    tickfont: { family: SERIF_BODY, size: 10, color: '#3A352A' },
+    fixedrange: true,
+    automargin: true,
+  },
   dragmode: false,
 };
 
 const PLOTLY_CONFIG = { displayModeBar: false, responsive: true, scrollZoom: false, doubleClick: false };
+const AXIS_TITLE_FONT = { family: SERIF_DISPLAY, size: 10, color: '#716A58' };
 
 let DATA = null;
 
@@ -34,6 +67,16 @@ const fmtCoef = n => {
   if (Math.abs(n) >= 100) return n.toFixed(2);
   if (Math.abs(n) >= 1) return n.toFixed(3);
   return n.toFixed(4);
+};
+
+const fmtHeadline = n => {
+  if (!isFinite(n)) return { num: String(n), unit: '' };
+  const abs = Math.abs(n);
+  if (abs >= 1e12) return { num: (n / 1e12).toFixed(2), unit: 'trillion lbs / yr' };
+  if (abs >= 1e9)  return { num: (n / 1e9).toFixed(2),  unit: 'billion lbs / yr' };
+  if (abs >= 1e6)  return { num: (n / 1e6).toFixed(2),  unit: 'million lbs / yr' };
+  if (abs >= 1e3)  return { num: (n / 1e3).toFixed(1),  unit: 'thousand lbs / yr' };
+  return { num: n.toFixed(0), unit: 'lbs / yr' };
 };
 
 async function loadData() {
@@ -58,13 +101,8 @@ function statesToRender(selected) {
   return [selected];
 }
 
-function colorFor(state) {
-  return STATE_COLORS[state] || GT_NAVY;
-}
-
-function axisTitle(text) {
-  return { text, font: { family: 'Oswald, sans-serif', size: 11 } };
-}
+const colorFor = state => STATE_COLORS[state] || GT_NAVY;
+const axisTitle = text => ({ text, font: AXIS_TITLE_FONT, standoff: 8 });
 
 function curveYears(startYear, endYear, steps = 200) {
   const xs = new Array(steps);
@@ -94,19 +132,10 @@ function renderTotalChart(selected) {
     const mw = mwCurve(d, xs);
     const em = emCurve(d, xs);
     const total = mw.map((m, i) => m * DATA.hours_per_year * em[i]);
+    traces.push({ x: xs, y: total, mode: 'lines', name: state, line: { width: 2, dash: 'dash', color } });
     traces.push({
-      x: xs,
-      y: total,
-      mode: 'lines',
-      name: state,
-      line: { width: 2, dash: 'dash', color },
-    });
-    traces.push({
-      x: DATA.mw_years,
-      y: d.combined_points,
-      mode: 'markers',
-      name: state,
-      marker: { size: 7, color, line: { color: '#FFFFFF', width: 1 } },
+      x: DATA.mw_years, y: d.combined_points, mode: 'markers', name: state,
+      marker: { size: 6, color, line: { color: '#F5EFDF', width: 1.2 } },
       showlegend: false,
     });
   }
@@ -124,13 +153,18 @@ function renderMwChart(selected) {
   for (const state of statesToRender(selected)) {
     const d = DATA.states[state];
     const color = colorFor(state);
-    traces.push({ x: xs, y: mwCurve(d, xs), mode: 'lines', name: state, line: { width: 1.8, color } });
-    traces.push({ x: DATA.mw_years, y: d.mw_data, mode: 'markers', marker: { size: 7, color, line: { color: '#FFFFFF', width: 1 } }, showlegend: false, name: state });
+    traces.push({ x: xs, y: mwCurve(d, xs), mode: 'lines', name: state, line: { width: 1.6, color } });
+    traces.push({
+      x: DATA.mw_years, y: d.mw_data, mode: 'markers',
+      marker: { size: 6, color, line: { color: '#F5EFDF', width: 1.2 } },
+      showlegend: false, name: state,
+    });
   }
   const layout = {
     ...PLOTLY_LAYOUT,
     yaxis: { ...PLOTLY_LAYOUT.yaxis, title: axisTitle('MW') },
     xaxis: { ...PLOTLY_LAYOUT.xaxis, title: axisTitle('Year') },
+    showlegend: false,
   };
   Plotly.react('mw-chart', traces, layout, PLOTLY_CONFIG);
 }
@@ -141,13 +175,18 @@ function renderEmChart(selected) {
   for (const state of statesToRender(selected)) {
     const d = DATA.states[state];
     const color = colorFor(state);
-    traces.push({ x: xs, y: emCurve(d, xs), mode: 'lines', name: state, line: { width: 1.8, color } });
-    traces.push({ x: DATA.em_years, y: d.em_data, mode: 'markers', marker: { size: 7, color, line: { color: '#FFFFFF', width: 1 } }, showlegend: false, name: state });
+    traces.push({ x: xs, y: emCurve(d, xs), mode: 'lines', name: state, line: { width: 1.6, color } });
+    traces.push({
+      x: DATA.em_years, y: d.em_data, mode: 'markers',
+      marker: { size: 6, color, line: { color: '#F5EFDF', width: 1.2 } },
+      showlegend: false, name: state,
+    });
   }
   const layout = {
     ...PLOTLY_LAYOUT,
     yaxis: { ...PLOTLY_LAYOUT.yaxis, title: axisTitle('lb / MWh') },
     xaxis: { ...PLOTLY_LAYOUT.xaxis, title: axisTitle('Year') },
+    showlegend: false,
   };
   Plotly.react('em-chart', traces, layout, PLOTLY_CONFIG);
 }
@@ -181,8 +220,7 @@ function projectState(state, year) {
   const em = d.fit.em[0] * Math.exp(d.fit.em[1] * (year - DATA.em_anchor));
   const mwh = mw * DATA.hours_per_year;
   return {
-    state,
-    year,
+    state, year,
     mw_capacity: mw,
     mwh_per_year: mwh,
     emission_rate_lb_per_mwh: em,
@@ -190,27 +228,36 @@ function projectState(state, year) {
   };
 }
 
+function renderEmptyResult(msg) {
+  document.getElementById('result').innerHTML = `<div class="res-empty">${msg}</div>`;
+}
+
+function renderResult(j) {
+  const el = document.getElementById('result');
+  const head = fmtHeadline(j.total_lbs_co2);
+  el.innerHTML = `
+    <div class="res-headline-label">${j.state} · ${j.year}</div>
+    <div class="res-headline">${head.num}<span class="res-unit">${head.unit}</span></div>
+    <div class="res-deck">Projected annual CO<sub>2</sub> under the fitted model.</div>
+    <div class="res-grid">
+      <div class="res-label">MW</div>
+      <div class="res-value">${fmt(j.mw_capacity)}</div>
+      <div class="res-label">MWh / yr</div>
+      <div class="res-value">${fmt(j.mwh_per_year)}</div>
+      <div class="res-label">lb / MWh</div>
+      <div class="res-value">${fmt(j.emission_rate_lb_per_mwh)}</div>
+      <div class="res-label">Total lbs CO<sub>2</sub></div>
+      <div class="res-value">${fmt(j.total_lbs_co2)}</div>
+    </div>
+  `;
+}
+
 function runProjection() {
   const state = document.getElementById('state').value;
   const year = Number(document.getElementById('year').value);
-  const el = document.getElementById('result');
-
-  if (state === '__all__') {
-    el.textContent = 'Pick a specific state above for a point projection.';
-    return;
-  }
-  if (!Number.isFinite(year)) {
-    el.textContent = 'Enter a valid year.';
-    return;
-  }
-  const j = projectState(state, year);
-  el.textContent =
-    `State    ${j.state}\n` +
-    `Year     ${j.year}\n` +
-    `MW       ${fmt(j.mw_capacity)}\n` +
-    `MWh/yr   ${fmt(j.mwh_per_year)}\n` +
-    `lb/MWh   ${fmt(j.emission_rate_lb_per_mwh)}\n` +
-    `Total    ${fmt(j.total_lbs_co2)} lbs`;
+  if (state === '__all__') return renderEmptyResult('Pick a specific state above for a point projection.');
+  if (!Number.isFinite(year)) return renderEmptyResult('Enter a valid year.');
+  renderResult(projectState(state, year));
 }
 
 function onStateChange() {
@@ -236,7 +283,6 @@ function onFormSubmit(e) {
     runProjection();
   } catch (err) {
     console.error(err);
-    const el = document.getElementById('result');
-    if (el) el.textContent = `failed to load data.json: ${err.message}`;
+    renderEmptyResult(`Failed to load data.json: ${err.message}`);
   }
 })();
