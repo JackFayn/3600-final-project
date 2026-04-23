@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Data Center CO₂ Projections — CS 3600 Final</title>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+</head>
+<body>
+
+  <div class="gold-bar"></div>
+  <header>
+    <div class="wordmark">
+      <span class="gt">GT</span>
+      <span class="course">CS 3600 &middot; Final Presentation</span>
+    </div>
+    <h1>How much CO<sub>2</sub> will U.S. data centers put out by 2030?</h1>
+    <p class="lede">
+      We fit exponential curves to state-level MW capacity and grid emission intensity,
+      then multiply them to estimate yearly pounds of CO<sub>2</sub> through 2030. Five
+      states, six years of EPA data, and one pretty alarming forecast.
+    </p>
+  </header>
+
+  <main>
+
+    <section id="try-it" class="panel">
+      <h2>Try a projection</h2>
+      <p class="panel-sub">Pick a state and a year. The model evaluates both fits at that year and multiplies.</p>
+      <form id="project-form">
+        <label>State
+          <select name="state" id="state">
+            <option value="__all__">All states</option>
+            {% for s in states %}<option value="{{ s }}">{{ s }}</option>{% endfor %}
+          </select>
+        </label>
+        <label>Year
+          <input type="number" name="year" id="year" value="2030" min="2018" max="2050" step="1" />
+        </label>
+        <button type="submit">Project</button>
+      </form>
+      <div id="result" class="result"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Projected total emissions</h2>
+      <p class="panel-sub">Log scale. Dashed line is the model, dots are the <em>observed</em> MW &times; hybrid emission rate.</p>
+      <div id="total-chart" class="chart"></div>
+    </section>
+
+    <section class="panel grid-2">
+      <div>
+        <h2>MW capacity</h2>
+        <p class="panel-sub">Data-center nameplate capacity by state.</p>
+        <div id="mw-chart" class="chart"></div>
+      </div>
+      <div>
+        <h2>Emission intensity</h2>
+        <p class="panel-sub">Grid CO<sub>2</sub> output rate (lb / MWh).</p>
+        <div id="em-chart" class="chart"></div>
+      </div>
+    </section>
+
+    <section id="methodology" class="panel methodology">
+      <h2>How the math works</h2>
+      <p>
+        We have two moving pieces: how <em>much</em> power data centers draw, and how
+        <em>dirty</em> that power is. Both are trending, so we fit each with its own
+        exponential and then multiply. No hand-waving — here's every step.
+      </p>
+
+      <h3>1. Capacity fit</h3>
+      <p>
+        MW nameplate data (2021&ndash;2024 plus a 2030 industry target) is fit to:
+      </p>
+      <div class="eq">
+        MW(<i>t</i>) = <i>a</i> &middot; <i>e</i><sup><i>b</i>(<i>t</i>&minus;2021)</sup>
+      </div>
+      <p>
+        using SciPy's <code>curve_fit</code> (nonlinear least squares). We anchor the
+        exponent at 2021 so <i>a</i> is interpretable as the 2021 baseline capacity.
+      </p>
+
+      <h3>2. Emission-intensity fit</h3>
+      <p>
+        EPA eGRID state totals for 2018&ndash;2023 are fit to:
+      </p>
+      <div class="eq">
+        E(<i>t</i>) = <i>a</i> &middot; <i>e</i><sup><i>b</i>(<i>t</i>&minus;2018)</sup>
+      </div>
+      <p>
+        Anchored at 2018 with an initial guess of <code>p0 = (E<sub>2018</sub>, &minus;0.1)</code>.
+        The negative seed matters — without it the solver sometimes lands on a flat fit
+        for states that are decarbonizing quickly (looking at you, Illinois).
+      </p>
+
+      <h3>3. Annualizing</h3>
+      <p>
+        MW is a rate. To get an annual energy figure we multiply by 8,760 hours per
+        year (assuming continuous operation, which is basically true for data centers):
+      </p>
+      <div class="eq">
+        MWh(<i>t</i>) = MW(<i>t</i>) &middot; 8760
+      </div>
+
+      <h3>4. Total emissions</h3>
+      <p>Then it's just energy times dirtiness:</p>
+      <div class="eq big">
+        Total CO<sub>2</sub>(<i>t</i>) &nbsp;=&nbsp; <i>a</i><sub>MW</sub> &middot; <i>e</i><sup><i>b</i><sub>MW</sub>(<i>t</i>&minus;2021)</sup>
+        &nbsp;&middot;&nbsp; 8760
+        &nbsp;&middot;&nbsp; <i>a</i><sub>E</sub> &middot; <i>e</i><sup><i>b</i><sub>E</sub>(<i>t</i>&minus;2018)</sup>
+      </div>
+      <p>
+        Because both pieces are exponentials, the product is also exponential — its
+        growth rate is the <em>sum</em> of the two rates. For Virginia that sum is
+        positive and big. For most other states the grid is cleaning up fast enough to
+        cancel part of the capacity blow-up.
+      </p>
+
+      <h3>5. Fitted parameters</h3>
+      <p>
+        These are what <code>curve_fit</code> actually returned for each state:
+      </p>
+      <div class="table-wrap">
+        <table id="fits-table">
+          <thead>
+            <tr>
+              <th>State</th>
+              <th><i>a</i><sub>MW</sub></th>
+              <th><i>b</i><sub>MW</sub></th>
+              <th><i>a</i><sub>E</sub></th>
+              <th><i>b</i><sub>E</sub></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <h3>6. Caveats we know about</h3>
+      <ul class="caveats">
+        <li>Five data points for MW and six for emissions is <em>thin</em>. Confidence intervals on <i>b</i> are wide.</li>
+        <li>We assume 100% utilization. Real PUE &gt; 1 and variable load mean our numbers are a rough upper bound.</li>
+        <li>Exponential extrapolation is optimistic in both directions — grid cleanup can't go below zero, and capacity will eventually saturate.</li>
+        <li>The 2030 MW point is an industry projection, not measured. It's pulling the fit a lot.</li>
+      </ul>
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+      <span>CS 3600 &middot; Spring 2026 &middot; Georgia Institute of Technology</span>
+      <span>Data: EPA eGRID 2018&ndash;2023 &middot; Fits: <code>scipy.optimize.curve_fit</code></span>
+    </div>
+  </footer>
+
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
