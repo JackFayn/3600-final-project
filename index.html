@@ -3,94 +3,69 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Projecting U.S. data-center CO₂ emissions — ECE 3600</title>
+<title>Data Center CO₂ Projections — ECE 3600 Final</title>
 <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="static/styles.css" />
 </head>
 <body>
 
-  <header class="masthead">
-    <p class="dateline">
-      <span class="gold-mark"></span>
-      <span>Georgia Institute of Technology</span>
-      <span class="sep"></span>
-      <span>ECE 3600</span>
-      <span class="sep"></span>
-      <span>Spring 2026</span>
-    </p>
-
-    <h1>Projecting U.S. data&#8209;center <em>CO<sub>2</sub></em> emissions</h1>
-
-    <p class="deck">
+  <div class="gold-bar"></div>
+  <header>
+    <div class="wordmark">
+      <span class="gt">GT</span>
+      <span class="course">ECE 3600 &middot; Final Presentation</span>
+    </div>
+    <h1>Projecting U.S. data-center CO<sub>2</sub> emissions</h1>
+    <p class="lede">
       We fit exponential models to state-level data-center MW capacity and to grid
       CO<sub>2</sub> intensity, then multiplied the two to estimate annual emissions.
-      <em>The analysis covers five states and six years of EPA eGRID data. Of those
-      five, Virginia shows the steepest projected growth.</em>
+      The analysis covers five states and six years of EPA eGRID data.
+      Of those five, Virginia shows the steepest projected growth.
     </p>
-
-    <div class="byline">
-      <strong>Final&nbsp;Presentation</strong>
-      <span class="sep"></span>
-      <span>Data: EPA&nbsp;eGRID 2018&ndash;2023</span>
-      <span class="sep"></span>
-      <span>Fits: <code>scipy.optimize.curve_fit</code></span>
-    </div>
   </header>
 
   <main>
 
-    <article id="try-it" class="article">
-      <div class="section-kicker">Interactive projection</div>
-      <h2>Evaluate the model <em>at a year</em></h2>
+    <section id="try-it" class="panel">
+      <h2>Interactive projection</h2>
       <p class="panel-sub">Pick a state and year. The model evaluates both fits at that year and returns the product.</p>
-      <div class="interactive">
-        <form id="project-form" class="form-stack">
-          <label>State
-            <select name="state" id="state">
-              <option value="__all__">All states</option>
-            </select>
-          </label>
-          <label>Year
-            <input type="number" name="year" id="year" value="2030" min="2018" max="2050" step="1" />
-          </label>
-        </form>
-        <div id="result" class="result"></div>
-      </div>
-    </article>
+      <form id="project-form">
+        <label>State
+          <select name="state" id="state">
+            <option value="__all__">All states</option>
+          </select>
+        </label>
+        <label>Year
+          <input type="number" name="year" id="year" value="2030" min="2018" max="2050" step="1" />
+        </label>
+      </form>
+      <div id="result" class="result"></div>
+    </section>
 
-    <article class="article">
-      <div class="section-kicker">Figure 01 · Total emissions</div>
+    <section class="panel">
       <h2>Projected total emissions</h2>
       <p class="panel-sub">Log scale. Dashed lines are the fitted model. Markers are observed MW multiplied by a hybrid emission rate.</p>
-      <div class="figure">
-        <div id="total-chart" class="chart"></div>
-        <p class="fig-caption">Projected annual CO<sub>2</sub> from data-center load, five states, 2021&ndash;2030. Model lines are the product of the capacity fit and the emission-intensity fit; markers combine observed MW with the EPA eGRID rate for that year.</p>
-      </div>
-    </article>
+      <div id="total-chart" class="chart"></div>
+    </section>
 
-    <article class="article">
-      <div class="section-kicker">Figures 02 &amp; 03 · Inputs</div>
-      <h2>The two fits, separately</h2>
-      <p class="panel-sub">Capacity and grid intensity are fit independently, then multiplied for the total above.</p>
-      <div class="grid-figures">
-        <div class="figure">
-          <div class="fig-label"><span class="n">Fig. 02</span><span>MW capacity</span></div>
-          <div id="mw-chart" class="chart"></div>
-          <p class="fig-caption">Data-center nameplate capacity by state.</p>
-        </div>
-        <div class="figure">
-          <div class="fig-label"><span class="n">Fig. 03</span><span>Emission intensity</span></div>
-          <div id="em-chart" class="chart"></div>
-          <p class="fig-caption">Grid CO<sub>2</sub> output rate, in pounds per MWh.</p>
-        </div>
+    <section class="panel grid-2">
+      <div>
+        <h2>MW capacity</h2>
+        <p class="panel-sub">Data-center nameplate capacity by state.</p>
+        <div id="mw-chart" class="chart"></div>
       </div>
-    </article>
+      <div>
+        <h2>Emission intensity</h2>
+        <p class="panel-sub">Grid CO<sub>2</sub> output rate, in pounds per MWh.</p>
+        <div id="em-chart" class="chart"></div>
+      </div>
+    </section>
 
-    <article id="methodology" class="article methodology">
-      <div class="section-kicker">Methodology</div>
-      <h2>How the projection is built</h2>
+    <section id="methodology" class="panel methodology">
+      <h2>Methodology</h2>
       <p>
         Total emissions depend on two things: installed data-center capacity, and
         the emission intensity of the grid that supplies it. Both look roughly
@@ -98,14 +73,13 @@
         and multiply them.
       </p>
 
-      <h3><span class="step-num">i.</span> Capacity fit</h3>
+      <h3>1. Capacity fit</h3>
       <p>
         MW nameplate data for 2021 through 2024, together with a published 2030
         industry projection, is fit to the model:
       </p>
       <div class="eq">
-        <div class="eq-expr">MW(<i>t</i>) = <i>a</i> &middot; <i>e</i><sup><i>b</i>(<i>t</i>&minus;2021)</sup></div>
-        <div class="eq-num">(1)</div>
+        MW(<i>t</i>) = <i>a</i> &middot; <i>e</i><sup><i>b</i>(<i>t</i>&minus;2021)</sup>
       </div>
       <p>
         We use SciPy's <code>curve_fit</code> for this, which runs a nonlinear
@@ -113,15 +87,14 @@
         the 2021 capacity, so the parameters are easier to read directly.
       </p>
 
-      <h3><span class="step-num">ii.</span> Emission-intensity fit</h3>
+      <h3>2. Emission-intensity fit</h3>
       <p>
         Emission intensity uses the same exponential form, anchored at 2018 to
         match the start of the data. EPA eGRID state values from 2018 through
         2023 are fit to:
       </p>
       <div class="eq">
-        <div class="eq-expr">E(<i>t</i>) = <i>a</i> &middot; <i>e</i><sup><i>b</i>(<i>t</i>&minus;2018)</sup></div>
-        <div class="eq-num">(2)</div>
+        E(<i>t</i>) = <i>a</i> &middot; <i>e</i><sup><i>b</i>(<i>t</i>&minus;2018)</sup>
       </div>
       <p>
         Because emission intensity is generally falling over time, the solver
@@ -131,29 +104,25 @@
         decarbonizing quickly. Illinois is the clearest example.
       </p>
 
-      <h3><span class="step-num">iii.</span> Annualizing</h3>
+      <h3>3. Annualizing</h3>
       <p>
         MW is a rate, not an energy quantity. To get annual energy we multiply by
         8,760, the number of hours in a year. Data-center load runs close to flat
         around the clock, so this is a reasonable first-order estimate:
       </p>
       <div class="eq">
-        <div class="eq-expr">MWh(<i>t</i>) = MW(<i>t</i>) &middot; 8760</div>
-        <div class="eq-num">(3)</div>
+        MWh(<i>t</i>) = MW(<i>t</i>) &middot; 8760
       </div>
 
-      <h3><span class="step-num">iv.</span> Total emissions</h3>
+      <h3>4. Total emissions</h3>
       <p>
         The total CO<sub>2</sub> in a given year is the product of annual energy and
         the corresponding emission intensity:
       </p>
       <div class="eq big">
-        <div class="eq-expr">
-          Total CO<sub>2</sub>(<i>t</i>) &nbsp;=&nbsp; <i>a</i><sub>MW</sub> &middot; <i>e</i><sup><i>b</i><sub>MW</sub>(<i>t</i>&minus;2021)</sup>
-          &nbsp;&middot;&nbsp; 8760
-          &nbsp;&middot;&nbsp; <i>a</i><sub>E</sub> &middot; <i>e</i><sup><i>b</i><sub>E</sub>(<i>t</i>&minus;2018)</sup>
-        </div>
-        <div class="eq-num">(4)</div>
+        Total CO<sub>2</sub>(<i>t</i>) &nbsp;=&nbsp; <i>a</i><sub>MW</sub> &middot; <i>e</i><sup><i>b</i><sub>MW</sub>(<i>t</i>&minus;2021)</sup>
+        &nbsp;&middot;&nbsp; 8760
+        &nbsp;&middot;&nbsp; <i>a</i><sub>E</sub> &middot; <i>e</i><sup><i>b</i><sub>E</sub>(<i>t</i>&minus;2018)</sup>
       </div>
       <p>
         Both factors are exponential, so the product is too, with a growth rate
@@ -162,7 +131,7 @@
         partly cancels out the capacity growth.
       </p>
 
-      <h3><span class="step-num">v.</span> Fitted parameters</h3>
+      <h3>5. Fitted parameters</h3>
       <p>
         Fitted coefficients from <code>curve_fit</code> for each state:
       </p>
@@ -181,18 +150,20 @@
         </table>
       </div>
 
-      <h3><span class="step-num">vi.</span> Caveats</h3>
+      <h3>6. Caveats</h3>
       <ul class="caveats">
         <li>We only have five years of MW data and six years of emission data per state, so the fitted growth rate has a wide margin of error.</li>
         <li>The 2030 MW number comes from an industry forecast, not a real measurement, which means it has an outsized effect on where the projection lands.</li>
       </ul>
-    </article>
+    </section>
 
   </main>
 
   <footer>
-    <span><span class="colophon-mark"></span>ECE&nbsp;3600 &middot; Spring&nbsp;2026 &middot; Georgia&nbsp;Tech</span>
-    <span>Data: EPA&nbsp;eGRID 2018&ndash;2023 &middot; Fits: <code>scipy.optimize.curve_fit</code></span>
+    <div class="footer-inner">
+      <span>ECE 3600 &middot; Spring 2026 &middot; Georgia Institute of Technology</span>
+      <span>Data: EPA eGRID 2018&ndash;2023 &middot; Fits: <code>scipy.optimize.curve_fit</code></span>
+    </div>
   </footer>
 
   <script src="static/app.js"></script>
