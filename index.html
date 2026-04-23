@@ -90,19 +90,19 @@
 
       <h3>2. Emission-intensity fit</h3>
       <p>
-        The same functional form is used for emission intensity, with the anchor
-        shifted to match the data window. EPA eGRID state totals for 2018 through
+        Emission intensity uses the same exponential form, anchored at 2018 to
+        match the start of the data. EPA eGRID state values from 2018 through
         2023 are fit to:
       </p>
       <div class="eq">
         E(<i>t</i>) = <i>a</i> &middot; <i>e</i><sup><i>b</i>(<i>t</i>&minus;2018)</sup>
       </div>
       <p>
-        The initial guess supplied to <code>curve_fit</code> must use a negative value
-        for <i>b</i>, for example <code>p0 = (E<sub>2018</sub>, &minus;0.1)</code>.
-        With a non-negative seed the solver can converge to a nearly flat fit for
-        states in which the grid is decarbonizing quickly. Illinois exhibits this
-        behavior most clearly.
+        Because emission intensity is generally falling over time, the solver
+        needs a negative starting guess for <i>b</i>, such as
+        <code>p0 = (E<sub>2018</sub>, &minus;0.1)</code>. A non-negative starting
+        value can cause the fit to flatten out for states whose grids are
+        decarbonizing quickly. Illinois is the clearest example.
       </p>
 
       <h3>3. Annualizing</h3>
