@@ -1,6 +1,5 @@
 // Georgia Tech palette + a few complements so five states are distinguishable.
 const GT_NAVY = '#003057';
-const GT_GOLD = '#B3A369';
 const STATE_COLORS = {
   Hawaii:    '#003057', // navy
   Illinois:  '#B3A369', // tech gold
@@ -21,7 +20,7 @@ const PLOTLY_LAYOUT = {
 
 const PLOTLY_CONFIG = { displayModeBar: false, responsive: true };
 
-let SERIES = null;
+let DATA = null;
 
 const fmt = n => {
   if (!isFinite(n)) return String(n);
@@ -37,15 +36,25 @@ const fmtCoef = n => {
   return n.toFixed(4);
 };
 
-async function loadSeries() {
-  const resp = await fetch('/api/series?start=2021&end=2030&points=180');
-  if (!resp.ok) throw new Error('series fetch failed');
+async function loadData() {
+  const resp = await fetch('static/data.json');
+  if (!resp.ok) throw new Error(`data.json fetch failed: ${resp.status}`);
   return resp.json();
 }
 
+function populateStates() {
+  const select = document.getElementById('state');
+  for (const s of Object.keys(DATA.states).sort()) {
+    const opt = document.createElement('option');
+    opt.value = s;
+    opt.textContent = s;
+    select.appendChild(opt);
+  }
+}
+
 function statesToRender(selected) {
-  if (!SERIES) return [];
-  if (selected === '__all__' || !SERIES.states[selected]) return Object.keys(SERIES.states);
+  if (!DATA) return [];
+  if (selected === '__all__' || !DATA.states[selected]) return Object.keys(DATA.states).sort();
   return [selected];
 }
 
@@ -56,17 +65,17 @@ function colorFor(state) {
 function renderTotalChart(selected) {
   const traces = [];
   for (const state of statesToRender(selected)) {
-    const d = SERIES.states[state];
+    const d = DATA.states[state];
     const color = colorFor(state);
     traces.push({
-      x: SERIES.years,
+      x: DATA.years,
       y: d.total_curve,
       mode: 'lines',
       name: `${state} (model)`,
       line: { width: 2.5, dash: 'dash', color },
     });
     traces.push({
-      x: d.mw_years,
+      x: DATA.mw_years,
       y: d.combined_points,
       mode: 'markers',
       name: `${state} (observed)`,
@@ -85,10 +94,10 @@ function renderTotalChart(selected) {
 function renderMwChart(selected) {
   const traces = [];
   for (const state of statesToRender(selected)) {
-    const d = SERIES.states[state];
+    const d = DATA.states[state];
     const color = colorFor(state);
-    traces.push({ x: SERIES.years, y: d.mw_curve, mode: 'lines', name: state, line: { width: 2, color } });
-    traces.push({ x: d.mw_years, y: d.mw_data, mode: 'markers', marker: { size: 8, color, line: { color: '#FFFFFF', width: 1 } }, showlegend: false, name: state });
+    traces.push({ x: DATA.years, y: d.mw_curve, mode: 'lines', name: state, line: { width: 2, color } });
+    traces.push({ x: DATA.mw_years, y: d.mw_data, mode: 'markers', marker: { size: 8, color, line: { color: '#FFFFFF', width: 1 } }, showlegend: false, name: state });
   }
   const layout = {
     ...PLOTLY_LAYOUT,
@@ -101,10 +110,10 @@ function renderMwChart(selected) {
 function renderEmChart(selected) {
   const traces = [];
   for (const state of statesToRender(selected)) {
-    const d = SERIES.states[state];
+    const d = DATA.states[state];
     const color = colorFor(state);
-    traces.push({ x: SERIES.years, y: d.em_curve, mode: 'lines', name: state, line: { width: 2, color } });
-    traces.push({ x: d.em_years, y: d.em_data, mode: 'markers', marker: { size: 8, color, line: { color: '#FFFFFF', width: 1 } }, showlegend: false, name: state });
+    traces.push({ x: DATA.years, y: d.em_curve, mode: 'lines', name: state, line: { width: 2, color } });
+    traces.push({ x: DATA.em_years, y: d.em_data, mode: 'markers', marker: { size: 8, color, line: { color: '#FFFFFF', width: 1 } }, showlegend: false, name: state });
   }
   const layout = {
     ...PLOTLY_LAYOUT,
@@ -122,10 +131,10 @@ function renderAllCharts(selected) {
 
 function renderFitsTable() {
   const tbody = document.querySelector('#fits-table tbody');
-  if (!tbody || !SERIES) return;
+  if (!tbody || !DATA) return;
   tbody.innerHTML = '';
-  for (const state of Object.keys(SERIES.states).sort()) {
-    const fit = SERIES.states[state].fit;
+  for (const state of Object.keys(DATA.states).sort()) {
+    const fit = DATA.states[state].fit;
     const row = document.createElement('tr');
     row.innerHTML =
       `<td>${state}</td>` +
@@ -137,9 +146,25 @@ function renderFitsTable() {
   }
 }
 
-async function runProjection() {
+// Evaluate the same exponential the Python curve_fit produced.
+function projectState(state, year) {
+  const d = DATA.states[state];
+  const mw = d.fit.mw[0] * Math.exp(d.fit.mw[1] * (year - DATA.mw_anchor));
+  const em = d.fit.em[0] * Math.exp(d.fit.em[1] * (year - DATA.em_anchor));
+  const mwh = mw * DATA.hours_per_year;
+  return {
+    state,
+    year,
+    mw_capacity: mw,
+    mwh_per_year: mwh,
+    emission_rate_lb_per_mwh: em,
+    total_lbs_co2: mwh * em,
+  };
+}
+
+function runProjection() {
   const state = document.getElementById('state').value;
-  const year = document.getElementById('year').value;
+  const year = Number(document.getElementById('year').value);
   const el = document.getElementById('result');
   const btn = document.querySelector('#project-form button');
 
@@ -148,22 +173,19 @@ async function runProjection() {
     btn.disabled = true;
     return;
   }
-  btn.disabled = false;
-  el.textContent = 'calculating…';
-  try {
-    const resp = await fetch(`/api/project?state=${encodeURIComponent(state)}&year=${encodeURIComponent(year)}`);
-    const j = await resp.json();
-    if (!resp.ok) { el.textContent = j.error || 'error'; return; }
-    el.textContent =
-      `State              ${j.state}\n` +
-      `Year               ${j.year}\n` +
-      `Projected MW       ${fmt(j.mw_capacity)} MW\n` +
-      `Projected MWh/yr   ${fmt(j.mwh_per_year)} MWh\n` +
-      `Emission rate      ${fmt(j.emission_rate_lb_per_mwh)} lb / MWh\n` +
-      `Total CO₂          ${fmt(j.total_lbs_co2)} lbs`;
-  } catch (err) {
-    el.textContent = `error: ${err.message}`;
+  if (!Number.isFinite(year)) {
+    el.textContent = 'Enter a valid year.';
+    return;
   }
+  btn.disabled = false;
+  const j = projectState(state, year);
+  el.textContent =
+    `State              ${j.state}\n` +
+    `Year               ${j.year}\n` +
+    `Projected MW       ${fmt(j.mw_capacity)} MW\n` +
+    `Projected MWh/yr   ${fmt(j.mwh_per_year)} MWh\n` +
+    `Emission rate      ${fmt(j.emission_rate_lb_per_mwh)} lb / MWh\n` +
+    `Total CO₂          ${fmt(j.total_lbs_co2)} lbs`;
 }
 
 function onStateChange() {
@@ -182,11 +204,14 @@ function onFormSubmit(e) {
   document.getElementById('state').addEventListener('change', onStateChange);
   document.getElementById('year').addEventListener('change', runProjection);
   try {
-    SERIES = await loadSeries();
-    renderAllCharts(document.getElementById('state').value);
+    DATA = await loadData();
+    populateStates();
+    renderAllCharts('__all__');
     renderFitsTable();
     runProjection();
   } catch (err) {
     console.error(err);
+    const el = document.getElementById('result');
+    if (el) el.textContent = `failed to load data.json: ${err.message}`;
   }
 })();

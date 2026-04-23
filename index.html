@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+<link rel="stylesheet" href="static/styles.css" />
 </head>
 <body>
 
@@ -35,7 +35,6 @@
         <label>State
           <select name="state" id="state">
             <option value="__all__">All states</option>
-            {% for s in states %}<option value="{{ s }}">{{ s }}</option>{% endfor %}
           </select>
         </label>
         <label>Year
@@ -158,6 +157,6 @@
     </div>
   </footer>
 
-  <script src="{{ url_for('static', filename='app.js') }}"></script>
+  <script src="static/app.js"></script>
 </body>
 </html>
