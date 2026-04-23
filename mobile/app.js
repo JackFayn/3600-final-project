@@ -13,11 +13,12 @@ const PLOTLY_LAYOUT = {
   font: { color: '#1A1A1A', family: '"Source Serif 4", Georgia, serif', size: 11 },
   margin: { t: 8, r: 12, b: 70, l: 54 },
   legend: { orientation: 'h', y: -0.3, x: 0, font: { family: 'Oswald, sans-serif', size: 10 } },
-  xaxis: { gridcolor: '#E5DFC9', zerolinecolor: '#D9D1B7', linecolor: '#D9D1B7', tickfont: { family: 'Oswald, sans-serif', size: 10 } },
-  yaxis: { gridcolor: '#E5DFC9', zerolinecolor: '#D9D1B7', linecolor: '#D9D1B7', tickfont: { family: 'Oswald, sans-serif', size: 10 } },
+  xaxis: { gridcolor: '#E5DFC9', zerolinecolor: '#D9D1B7', linecolor: '#D9D1B7', tickfont: { family: 'Oswald, sans-serif', size: 10 }, fixedrange: true },
+  yaxis: { gridcolor: '#E5DFC9', zerolinecolor: '#D9D1B7', linecolor: '#D9D1B7', tickfont: { family: 'Oswald, sans-serif', size: 10 }, fixedrange: true },
+  dragmode: false,
 };
 
-const PLOTLY_CONFIG = { displayModeBar: false, responsive: true };
+const PLOTLY_CONFIG = { displayModeBar: false, responsive: true, scrollZoom: false, doubleClick: false };
 
 let DATA = null;
 
@@ -193,18 +194,15 @@ function runProjection() {
   const state = document.getElementById('state').value;
   const year = Number(document.getElementById('year').value);
   const el = document.getElementById('result');
-  const btn = document.querySelector('#project-form button');
 
   if (state === '__all__') {
     el.textContent = 'Pick a specific state above for a point projection.';
-    btn.disabled = true;
     return;
   }
   if (!Number.isFinite(year)) {
     el.textContent = 'Enter a valid year.';
     return;
   }
-  btn.disabled = false;
   const j = projectState(state, year);
   el.textContent =
     `State    ${j.state}\n` +
