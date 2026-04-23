@@ -465,6 +465,7 @@ main {
   gap: 20px;
   padding: 22px 0;
   margin: 18px 0 18px;
+  max-width: 75ch;
   border-top: 1px solid var(--rule-soft);
   border-bottom: 1px solid var(--rule-soft);
   font-family: "Cambria Math", "STIX Two Math", var(--serif-body), serif;
@@ -484,7 +485,7 @@ main {
   font-size: 14.5px;
   white-space: nowrap;
 }
-.eq.big { font-size: 22px; padding: 30px 0; }
+.eq.big { font-size: 22px; padding: 30px 0; max-width: 92ch; }
 .eq i { font-style: italic; }
 .eq sub { font-size: 0.72em; vertical-align: sub; }
 .eq sup { font-size: 0.82em; }
@@ -505,6 +506,7 @@ code {
 .table-wrap {
   overflow-x: auto;
   margin-top: 10px;
+  max-width: 92ch;
 }
 #fits-table {
   width: 100%;
