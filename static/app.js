@@ -62,14 +62,37 @@ function colorFor(state) {
   return STATE_COLORS[state] || GT_NAVY;
 }
 
+function curveYears(startYear, endYear, steps = 200) {
+  const xs = new Array(steps);
+  const span = endYear - startYear;
+  for (let i = 0; i < steps; i++) xs[i] = startYear + (span * i) / (steps - 1);
+  return xs;
+}
+
+function mwCurve(d, years) {
+  const [a, k] = d.fit.mw;
+  return years.map(y => a * Math.exp(k * (y - DATA.mw_anchor)));
+}
+
+function emCurve(d, years) {
+  const [a, k] = d.fit.em;
+  return years.map(y => a * Math.exp(k * (y - DATA.em_anchor)));
+}
+
 function renderTotalChart(selected) {
   const traces = [];
+  const startYear = Math.min(DATA.mw_years[0], DATA.em_years[0]);
+  const endYear = DATA.years[DATA.years.length - 1];
+  const xs = curveYears(startYear, endYear);
   for (const state of statesToRender(selected)) {
     const d = DATA.states[state];
     const color = colorFor(state);
+    const mw = mwCurve(d, xs);
+    const em = emCurve(d, xs);
+    const total = mw.map((m, i) => m * DATA.hours_per_year * em[i]);
     traces.push({
-      x: DATA.years,
-      y: d.total_curve,
+      x: xs,
+      y: total,
       mode: 'lines',
       name: `${state} (model)`,
       line: { width: 2.5, dash: 'dash', color },
@@ -93,10 +116,11 @@ function renderTotalChart(selected) {
 
 function renderMwChart(selected) {
   const traces = [];
+  const xs = curveYears(DATA.mw_years[0], DATA.years[DATA.years.length - 1]);
   for (const state of statesToRender(selected)) {
     const d = DATA.states[state];
     const color = colorFor(state);
-    traces.push({ x: DATA.years, y: d.mw_curve, mode: 'lines', name: state, line: { width: 2, color } });
+    traces.push({ x: xs, y: mwCurve(d, xs), mode: 'lines', name: state, line: { width: 2, color } });
     traces.push({ x: DATA.mw_years, y: d.mw_data, mode: 'markers', marker: { size: 8, color, line: { color: '#FFFFFF', width: 1 } }, showlegend: false, name: state });
   }
   const layout = {
@@ -109,10 +133,11 @@ function renderMwChart(selected) {
 
 function renderEmChart(selected) {
   const traces = [];
+  const xs = curveYears(DATA.em_years[0], DATA.years[DATA.years.length - 1]);
   for (const state of statesToRender(selected)) {
     const d = DATA.states[state];
     const color = colorFor(state);
-    traces.push({ x: DATA.years, y: d.em_curve, mode: 'lines', name: state, line: { width: 2, color } });
+    traces.push({ x: xs, y: emCurve(d, xs), mode: 'lines', name: state, line: { width: 2, color } });
     traces.push({ x: DATA.em_years, y: d.em_data, mode: 'markers', marker: { size: 8, color, line: { color: '#FFFFFF', width: 1 } }, showlegend: false, name: state });
   }
   const layout = {
