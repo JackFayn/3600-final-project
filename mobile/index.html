@@ -63,8 +63,8 @@
     <section class="panel methodology">
       <h2>Methodology</h2>
       <p>
-        MW capacity and grid emission intensity are each fit to an exponential,
-        then multiplied. SciPy's <code>curve_fit</code> runs the nonlinear
+        We fit MW capacity and grid emission intensity each to an exponential,
+        then multiply them. SciPy's <code>curve_fit</code> handles the nonlinear
         least-squares. Equations scroll horizontally if needed.
       </p>
 
@@ -77,8 +77,8 @@
       <h3>Total CO<sub>2</sub></h3>
       <div class="eq">CO<sub>2</sub>(<i>t</i>) = MW(<i>t</i>) &middot; 8760 &middot; E(<i>t</i>)</div>
       <p>
-        Both factors are exponential, so their product is also exponential, with
-        growth rate equal to the sum of the two component rates.
+        Both factors are exponential, so their product is too, with a growth rate
+        equal to the sum of the two component rates.
       </p>
 
       <h3>Fitted coefficients</h3>
