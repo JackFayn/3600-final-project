@@ -18,11 +18,11 @@
       <span class="gt">GT</span>
       <span class="course">ECE 3600 &middot; Final Presentation</span>
     </div>
-    <h1>Projecting U.S. data-center CO<sub>2</sub> emissions through 2030</h1>
+    <h1>Projecting U.S. data-center CO<sub>2</sub> emissions</h1>
     <p class="lede">
       We fit exponential models to state-level data-center MW capacity and to grid
-      CO<sub>2</sub> intensity, then multiplied the two to estimate annual emissions
-      through 2030. The analysis covers five states and six years of EPA eGRID data.
+      CO<sub>2</sub> intensity, then multiplied the two to estimate annual emissions.
+      The analysis covers five states and six years of EPA eGRID data.
       Of those five, Virginia shows the steepest projected growth.
     </p>
   </header>
@@ -155,10 +155,8 @@
 
       <h3>6. Caveats</h3>
       <ul class="caveats">
-        <li>The sample is small: five MW data points and six emission data points per state. The confidence intervals on the fitted <i>b</i> coefficients are correspondingly wide.</li>
-        <li>We assume 100% utilization. In practice PUE exceeds 1 and load varies, so these figures should be read as an upper bound rather than a point estimate.</li>
-        <li>Exponential extrapolation is unbounded in both directions. Emission intensity cannot fall below zero, and capacity growth must eventually saturate; the model does not enforce either constraint.</li>
-        <li>The 2030 MW value is a published industry projection rather than an observation, and it exerts significant leverage on the capacity fit.</li>
+        <li>We only have five years of MW data and six years of emission data per state, so the fitted growth rate has a wide margin of error.</li>
+        <li>The 2030 MW number comes from an industry forecast, not a real measurement, which means it has an outsized effect on where the projection lands.</li>
       </ul>
     </section>
 
